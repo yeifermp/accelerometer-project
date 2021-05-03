@@ -1,0 +1,15 @@
+*.pem
+**/.vscode/*
+*.projbuild
+**/mqtt-client/build/*
+**/mqtt-client/sdkconfig
+**/api/obj/*
+**/api/bin/*
+**/api/appsettings.Development.json
+**/api/appsettings.json
+*.key
+*.crt
+*.crs
+*.srl
+*.csr
+*.pfx
