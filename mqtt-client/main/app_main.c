@@ -71,8 +71,9 @@ void task_create_channel_tasks(void *params)
     {
         if (xSemaphoreMQTTConnection != NULL)
         {
-            if (xSemaphoreTake(xSemaphoreMQTTConnection, (TickType_t)10) == pdTRUE)
+            if (xSemaphoreTake(xSemaphoreMQTTConnection, (TickType_t)10) == pdTRUE) // Wait until an MQTT connection is established
             {
+                //  Create tasks to read accelerometer, gyroscope and temperature values
                 xTaskCreate(&task_get_accel_gyro, "task_get_accel_x", 2048, &channel_accel_x, 2, NULL);
                 xTaskCreate(&task_get_accel_gyro, "task_get_accel_y", 2048, &channel_accel_y, 2, NULL);
                 xTaskCreate(&task_get_accel_gyro, "task_get_accel_z", 2048, &channel_accel_z, 2, NULL);
@@ -102,6 +103,7 @@ void task_create_channel_tasks(void *params)
                 channel_temp.topic = TOPIC_TEMP;
                 channel_temp.queue = xQueueCreate(1000, sizeof(float));
 
+                //  Create tasks to send accelerometer, gyroscope and temperature data
                 mqtt_register_float_channel(&channel_accel_x, "channel_accel_x_task");
                 mqtt_register_float_channel(&channel_accel_y, "channel_accel_y_task");
                 mqtt_register_float_channel(&channel_accel_z, "channel_accel_x_task");
@@ -137,9 +139,10 @@ void task_get_temperature(void *parameter)
     vTaskDelete(NULL);
 }
 
+//  Get gyroscope or accelerometer values
 void task_get_accel_gyro(void *parameter)
 {
-    MQTTChannelConfig_t *channel_config = (MQTTChannelConfig_t *)parameter;
+    MQTTChannelConfig_t *channel_config = (MQTTChannelConfig_t *)parameter;     // Get channel configuration
     TickType_t ticks = (TickType_t)10;
     float value = 0;
 
@@ -147,19 +150,19 @@ void task_get_accel_gyro(void *parameter)
     {
         if (channel_config->queue != NULL)
         {
-            value = mqtt_get_accelerometer_value_16bit(channel_config->topic);
+            value = mqtt_get_accelerometer_value_16bit(channel_config->topic);  // Get the value
 
-            if (channel_config->countSamples < 15)
+            if (channel_config->countSamples < 15)                              // Store 15 samples before sending to reduce noise
             {
                 channel_config->sumSample += value;
                 channel_config->countSamples++;
             }
             else
             {
-                value = channel_config->sumSample / 15;
-                xQueueSend(channel_config->queue, (void *)&value, ticks);
-                channel_config->countSamples = 0;
-                channel_config->sumSample = 0;
+                value = channel_config->sumSample / 15;                         // Send the average of 15 samples
+                xQueueSend(channel_config->queue, (void *)&value, ticks);       // Send the value to the queue
+                channel_config->countSamples = 0;                               // Put the values back to zero before starting again
+                channel_config->sumSample = 0;                                  // Put the values back to zero before starting again
             }
         }
     }
@@ -167,6 +170,7 @@ void task_get_accel_gyro(void *parameter)
     vTaskDelete(NULL);
 }
 
+//  Get the right accelerometer/gyroscope/temperature value given the MQTT topic
 float mqtt_get_accelerometer_value_16bit(MQTTTopic_t topic)
 {
     int16_t raw_value = 0;
@@ -175,32 +179,26 @@ float mqtt_get_accelerometer_value_16bit(MQTTTopic_t topic)
     {
     case TOPIC_ACCELX:
         raw_value = sAccelerometerGetAccelX();
-        //ESP_LOGI(MAIN_TAG, "AccelX: %d", raw_value);
         break;
 
     case TOPIC_ACCELY:
         raw_value = sAccelerometerGetAccelY();
-        //ESP_LOGI(MAIN_TAG, "AccelY: %d", raw_value);
         break;
 
     case TOPIC_ACCELZ:
         raw_value = sAccelerometerGetAccelZ();
-        //ESP_LOGI(MAIN_TAG, "AccelZ: %d", raw_value);
         break;
 
     case TOPIC_GYROX:
         raw_value = sAccelerometerGetGyroX();
-        //ESP_LOGI(MAIN_TAG, "GyroX: %d", raw_value);
         break;
 
     case TOPIC_GYROY:
         raw_value = sAccelerometerGetGyroY();
-        //ESP_LOGI(MAIN_TAG, "GyroY: %d", raw_value);
         break;
     
     case TOPIC_GYROZ:
         raw_value = sAccelerometerGetGyroZ();
-        //ESP_LOGI(MAIN_TAG, "GyroZ: %d", raw_value);
         break;
 
     default:

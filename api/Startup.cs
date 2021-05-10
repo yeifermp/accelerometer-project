@@ -23,8 +23,10 @@ namespace TelemetricSystems.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.Configure<MQTTConfig>(Configuration.GetSection("MQTTConfig"));
-            services.AddHostedService<MQTTClient>();
+            services.Configure<MQTTConfig>(Configuration.GetSection("MQTTConfig"));     // MQTT Configuration
+            services.AddHostedService<MQTTClient>();                                    // Register MQTTClient hosted service
+
+            // Adding CORS Policy to allow our web app to connect
             services.AddCors(options => options.AddPolicy("CorsPolicy", builder => {
                 builder.AllowAnyHeader()
                     .AllowAnyMethod()
@@ -33,8 +35,10 @@ namespace TelemetricSystems.Api
                     .WithOrigins("http://localhost:4200"); 
             }));
 
+            // Adding signalr service
             services.AddSignalR();
 
+            // Swagger for API documentation
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Telemetric API", Version = "v1" });
@@ -59,6 +63,8 @@ namespace TelemetricSystems.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                // Configuring the accelerometer hub endpoint notifier
                 endpoints.MapHub<AccelerometerHub>("/accelerometer-notifier");
             });
         }

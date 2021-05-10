@@ -3,6 +3,7 @@
 static const char *ACC_TAG = "ACCELEROMETER";
 static SemaphoreHandle_t semaphore_accelerometer = NULL;
 
+//  Initialize MPU6050
 esp_err_t ulAccelerometerInitialize(void) {
     esp_err_t result = ulI2CInitialize(I2C_CLK_SPEED);
 
@@ -43,7 +44,7 @@ esp_err_t ulAccelerometerInitialize(void) {
     }
 
     semaphore_accelerometer = xSemaphoreCreateMutex();
-    xSemaphoreGive(semaphore_accelerometer);
+    xSemaphoreGive(semaphore_accelerometer);            // Inform when the initialization is complete
 
     return result;
 }
@@ -55,7 +56,7 @@ int16_t sAccelerometerGetAccelX(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_ACCEL_XOUT, &usAccelXH);
 
@@ -73,7 +74,7 @@ int16_t sAccelerometerGetAccelX(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -88,7 +89,7 @@ int16_t sAccelerometerGetAccelY(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_ACCEL_YOUT, &ucAccelYH);
 
@@ -106,7 +107,7 @@ int16_t sAccelerometerGetAccelY(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -121,7 +122,7 @@ int16_t sAccelerometerGetAccelZ(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_ACCEL_ZOUT, &usAccelZH);
 
@@ -139,7 +140,7 @@ int16_t sAccelerometerGetAccelZ(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -154,7 +155,7 @@ int16_t sAccelerometerGetGyroX(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_GYRO_XOUT, &usGyroXH);
 
@@ -172,7 +173,7 @@ int16_t sAccelerometerGetGyroX(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -187,7 +188,7 @@ int16_t sAccelerometerGetGyroY(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_GYRO_YOUT, &usGyroYH);
 
@@ -205,7 +206,7 @@ int16_t sAccelerometerGetGyroY(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -220,7 +221,7 @@ int16_t sAccelerometerGetGyroZ(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_GYRO_ZOUT, &usGyroZH);
 
@@ -238,7 +239,7 @@ int16_t sAccelerometerGetGyroZ(void)
                 return 0;
             }
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }
@@ -254,7 +255,7 @@ float accelerometer_get_temperature(void)
 
     for (;;)
     {
-        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)
+        if (xSemaphoreTake(semaphore_accelerometer, (TickType_t)10) == pdTRUE)  // Wait until the I2C module is release
         {
             esp_err_t error = ulI2CReadByte(MPU6050_ADDRESS, MPU6050_TEMP_OUT, &usTempH);
 
@@ -274,7 +275,7 @@ float accelerometer_get_temperature(void)
 
             raw_data = (8 << ((int16_t)usTempH)) | ((int16_t)usTempL);
 
-            xSemaphoreGive(semaphore_accelerometer);
+            xSemaphoreGive(semaphore_accelerometer);    // Release the I2C module so other tasks can use it
             break;
         }
     }

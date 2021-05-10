@@ -35,6 +35,9 @@ namespace TelemetricSystems.Api.Services
 
         private IMqttClient _mqttClient;
 
+        /// <summary>
+        //  Method that initialize the MQTTClient hosted service.
+        /// </summary>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating MQTT client...");
@@ -43,6 +46,7 @@ namespace TelemetricSystems.Api.Services
 
             try
             {
+                // Connect to an MQTT broker
                 var result = await _mqttClient.ConnectAsync(GetMqttClientOptions(), CancellationToken.None);
 
                 if(result.ResultCode != MqttClientConnectResultCode.Success) 
@@ -56,10 +60,9 @@ namespace TelemetricSystems.Api.Services
                     await SubscribeToDefaultTopics();
                 }      
 
-                _mqttClient.UseDisconnectedHandler(DisconnectedAsync);
-                _mqttClient.UseConnectedHandler(ConnectedAsync);
-                _mqttClient.UseApplicationMessageReceivedHandler(MessageReceived);
-
+                _mqttClient.UseDisconnectedHandler(DisconnectedAsync);              // Reister a handler when MQTT client disconnects to the broker
+                _mqttClient.UseConnectedHandler(ConnectedAsync);                    // Reister a handler when MQTT client connects to the broker
+                _mqttClient.UseApplicationMessageReceivedHandler(MessageReceived);  // Reister a handler when a message is received
                 _logger.LogInformation("MQTT client has been created sucessfully.");
             }
             catch (Exception ex)
@@ -69,6 +72,9 @@ namespace TelemetricSystems.Api.Services
             }
         }
 
+        /// <summary>
+        //  Returns the MQTT Options.
+        /// </summary>
         private IMqttClientOptions GetMqttClientOptions() 
         {
             _logger.LogInformation("Gathering MQTT options...");
@@ -76,25 +82,26 @@ namespace TelemetricSystems.Api.Services
             try
             {
                 var currentPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var caCertFileName = Path.Combine(currentPath, "Certificates/ca.crt");
-                var clientCertFileName = Path.Combine(currentPath, "Certificates/api.pfx");
+                var caCertFileName = Path.Combine(currentPath, "Certificates/ca.crt");                          // Certificate Authority Path
+                var clientCertFileName = Path.Combine(currentPath, "Certificates/api.pfx");                     // Client Certificate Path
                 _logger.LogInformation($"CA certificate: {caCertFileName}");
                 _logger.LogInformation($"Client certificate: {clientCertFileName}");
                 var caCert = X509Certificate.CreateFromCertFile(caCertFileName);
-                var clientCert = new X509Certificate2(clientCertFileName, _mqttConfig.CertificatePassword);
+                var clientCert = new X509Certificate2(clientCertFileName, _mqttConfig.CertificatePassword);     // Creating the certificate instance 
+                                                                                                                // by using a file name and a password
                 var tlsParameters = new MqttClientOptionsBuilderTlsParameters()
                 {
-                    UseTls = true,
-                    SslProtocol = System.Security.Authentication.SslProtocols.Tls12,
-                    Certificates = new List<X509Certificate>()
+                    UseTls = true,                                                      // TLS enabled
+                    SslProtocol = System.Security.Authentication.SslProtocols.Tls12,    // Protocol used to send data
+                    Certificates = new List<X509Certificate>()                          // Certificate
                     {
                         caCert, clientCert
                     },
-                    CertificateValidationHandler = CertificateValidation
+                    CertificateValidationHandler = CertificateValidation                // Handler to be used when an certificate verification is required
                 };
 
                 var options = new MqttClientOptionsBuilder()
-                    .WithClientId($"Web_API_{Guid.NewGuid()}")
+                    .WithClientId($"Web_API_{Guid.NewGuid()}")                          // Generate a client id to be use by the MQTT Client
                     .WithTcpServer(_mqttConfig.Server, _mqttConfig.Port)
                     .WithTls(tlsParameters)
                     .Build();
@@ -112,10 +119,13 @@ namespace TelemetricSystems.Api.Services
 
         private bool CertificateValidation(MqttClientCertificateValidationCallbackContext args) 
         {
-            // TODO: Use a real certificate in production and do not do this.
+            // TODO: Be a dear and use a real certificate in production and do not do this. This is RISKY
             return true;
         }
 
+        /// <summary>
+        //  Handler that is call when a message is received.
+        /// </summary>
         private Task MessageReceived(MqttApplicationMessageReceivedEventArgs args) 
         {
             var payload = Encoding.UTF8.GetString(args.ApplicationMessage.Payload);
@@ -153,12 +163,17 @@ namespace TelemetricSystems.Api.Services
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        //  Handler that is call when the MQTT client connects to the broker.
+        /// </summary>
         private async Task ConnectedAsync(MqttClientConnectedEventArgs arg) 
         {
             await SubscribeToDefaultTopics();
         }
 
-
+        /// <summary>
+        //  Returns the MQTT Options.
+        /// </summary>
         private async Task SubscribeToDefaultTopics() 
         {
             var topicBuilder = new MqttTopicFilterBuilder();            
@@ -171,6 +186,9 @@ namespace TelemetricSystems.Api.Services
             await _mqttClient.SubscribeAsync(_mqttConfig.Topics.TemperatureTopicName);
         }
 
+        /// <summary>
+        //  Handler that is call when the MQTT client disconnects to the broker.
+        /// </summary>
         private async Task DisconnectedAsync(MqttClientDisconnectedEventArgs args) 
         {
             _logger.LogInformation("### DISCONNECTED FROM SERVER ###");
@@ -189,6 +207,9 @@ namespace TelemetricSystems.Api.Services
             }
         }
 
+        /// <summary>
+        //  Stop the Hosted Service.
+        /// </summary>
         public async Task StopAsync(CancellationToken cancellationToken)
         {
             await _mqttClient.DisconnectAsync();

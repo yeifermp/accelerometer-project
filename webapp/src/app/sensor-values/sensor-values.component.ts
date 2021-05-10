@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 
 @Component({
      selector: 'app-sensor-values',
      templateUrl: './sensor-values.component.html',
      styleUrls: ['./sensor-values.component.css']
 })
-export class SensorValuesComponent implements OnInit {
+export class SensorValuesComponent {
      dataSource = Array<IValueModel>();
      displayedColumns: string[] = ['position', 'name', 'value'];
      public gyroX = 0;
@@ -19,10 +19,6 @@ export class SensorValuesComponent implements OnInit {
      public angleY = 0;
 
      constructor() {
-
-     }
-
-     ngOnInit(): void {
 
      }
 

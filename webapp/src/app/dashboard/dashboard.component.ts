@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { AccelerometerHubService } from '../accelerometer-hub.service';
@@ -10,7 +10,7 @@ import { SensorValuesComponent } from '../sensor-values/sensor-values.component'
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
+export class DashboardComponent implements AfterViewInit, OnDestroy {
     @ViewChild(CubeComponent) cubeComponent!: CubeComponent;
     @ViewChild(SensorValuesComponent) sensorValuesComponent!: SensorValuesComponent;
     destroy$: Subject<boolean> = new Subject<boolean>();
@@ -40,8 +40,5 @@ export class DashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         })).subscribe();
 
         this.accelerometerHub.onTemp.pipe(takeUntil(this.destroy$), map(value => this.sensorValuesComponent.setTemperature(value))).subscribe();
-    }
-
-    ngOnInit(): void {
     }
 }

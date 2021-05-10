@@ -28,6 +28,8 @@ static void vWifiEventHandler(void* arg, esp_event_base_t event_base, int32_t ev
     }
 }
 
+//  This function initialize the wifi module
+//  xSemaphore parameter is used to inform other parts of the application when the module successfully connects to a network
 void vWIFIInitialize (SemaphoreHandle_t xSemaphore) {    
     xEventGroup = xEventGroupCreate();
     ESP_ERROR_CHECK(esp_netif_init());
@@ -75,7 +77,7 @@ void vWIFIInitialize (SemaphoreHandle_t xSemaphore) {
         portMAX_DELAY);
         
     if (bits & WIFI_CONNECTED_BIT) {
-        xSemaphoreGive(xSemaphore);
+        xSemaphoreGive(xSemaphore); // Gives the semaphore after the module connects to a WiFi network
         ESP_LOGI(TAG, "connected to ap SSID:%s", WIFI_SSID);
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s", WIFI_SSID);
